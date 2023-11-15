@@ -57,11 +57,18 @@ wp core install \
   --path=/var/www/html \
   --allow-root
 
-# Actualizacion de wordpress.
+# Actualizamos el core
 wp core update --path=/var/www/html --allow-root
 
-# Instalamos un tema
+# Instalamos un tema:
+
 wp theme install sydney --activate --path=/var/www/html --allow-root
 
-# Instalamos varios plugins
+# Instalamos el plugin bbpress:
+
+wp plugin install bbpress --activate --path=/var/www/html --allow-root
+
+
+
+
 
