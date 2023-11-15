@@ -68,6 +68,17 @@ wp theme install sydney --activate --path=/var/www/html --allow-root
 
 wp plugin install bbpress --activate --path=/var/www/html --allow-root
 
+# Instalamos el plugin para ocultar wp-admin
+wp plugin install wps-hide-login --activate --path=/var/www/html --allow-root
+
+# Habilitar permalinks
+wp rewrite structure '/%postname%/' \
+  --path=/var/www/html \
+  --allow-root
+  
+#PENDIENTE
+# Cambiamos al propietario de /var/www/html como www-data
+chown -R www-data:www-data /var/www/html
 
 
 
