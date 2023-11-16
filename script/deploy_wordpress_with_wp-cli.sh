@@ -76,7 +76,9 @@ wp rewrite structure '/%postname%/' \
   --path=/var/www/html \
   --allow-root
   
-#PENDIENTE
+# Copiamos el htaccess a /var/www/html
+cp ../conf/.htaccess /var/www/html
+
 # Cambiamos al propietario de /var/www/html como www-data
 chown -R www-data:www-data /var/www/html
 
