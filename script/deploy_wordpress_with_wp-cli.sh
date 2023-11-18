@@ -76,6 +76,9 @@ wp rewrite structure '/%postname%/' \
   --path=/var/www/html \
   --allow-root
   
+# Modificamos automaticamente el nombre que establece por defecto el plugin wpd-hide-login
+wp option update whl_page $WORDPRESS_HIDE_LOGIN --path=/var/www/html --allow-root
+
 # Copiamos el htaccess a /var/www/html
 cp ../conf/.htaccess /var/www/html
 
