@@ -303,7 +303,7 @@ mv /tmp/wp-cli.phar /usr/local/bin/wp
 ```
 Ya que bin, nos permite ejecutar comandos en linux.
 
-# Eliminamos instalaciones previas de wordpress
+## Eliminamos instalaciones previas de wordpress
 ```
 rm -rf /var/www/html/*
 ```
@@ -317,7 +317,9 @@ Aquí comenzamos con la descarga del codigo fuente de wordpress, como hemos dich
 wp core download --path=/var/www/html --locale=es_ES --allow-root
 ```
 
-Con ``core`` nos referimos a los archivos que se crean en la plataforma de WordPress para detectar, resolver y eliminar de forma automática los diferentes archivos ilegales que no pertenezcan al sitio web del usuario.
+Aquí lo que hacemos es elegir el idioma automaticamente, sin necesidad de ponerlo nosotros.
+
+Con ``core`` nos referimos a el núcleo de WordPress contiente los archivos principales de WordPress que permiten hacer cosas como: Acceder al panel de administración de WordPress. Agregar y editar publicaciones y páginas. Administrar usuarios.
 
 ```
 --path=/var/www/html --> Con esto designamos la ruta donde descargar todo el codigo fuente de wordpress.
@@ -325,7 +327,7 @@ Con ``core`` nos referimos a los archivos que se crean en la plataforma de WordP
 --allow-root --> Y lo importante, tenemos que permitir que el root ejecute dicha instalación si no, presentará errores.
 ```
 
-# Creamos la base de la base de datos y el usuario de la base de datos.
+## Creamos la base de la base de datos y el usuario de la base de datos.
 Aquí ya interviene el archivo .env donde emplea las siguientes variables.
 ```
 mysql -u root <<< "DROP DATABASE IF EXISTS $WORDPRESS_DB_NAME"
@@ -347,9 +349,9 @@ WORDPRESS_DB_HOST=localhost
 
 <p>Aquí disponemos de las variables necesarias para configurar la base de datos para wordpress, necesaría para todo despliegue, se pueden modificar las variables a antojo.</p>
 
-# Creación del archivo wp-config 
+## Creación del archivo wp-config 
 
-Aquí comenzamos con la creación del archivo wp-config
+Aquí comenzamos con la creación del archivo wp-config.
 
 ```
 wp config create \
@@ -359,8 +361,13 @@ wp config create \
   --path=/var/www/html \
   --allow-root
 ```
+Aquí, se configura la base de datos el cual se menciona al usuario en cuestión, su contraseña y el nombre de la base de datos 
+de wordpress.
 
-# Instalar wordpress.
+## Instalar wordpress.
+
+Cabe recordar que ``core`` nos permite configurar parametros de seguridad, usuarios, plugins etc. 
+
 ```
 wp core install \
   --url=$CERTIFICATE_DOMAIN \
@@ -371,39 +378,101 @@ wp core install \
   --path=/var/www/html \
   --allow-root
 ```
-# Actualizamos el core
+
+Con esto instalamos el core de wordpress.
+```
+Donde contiene lo siguiente:
+  --url=$CERTIFICATE_DOMAIN \ --> La variable la cual almacena nuestro dominio por el cual desplegamos nuestra aplicación web.
+  --title="$wordpress_title" \ --> El titulo que le hemos puesto a nuestra pagina wordpress.
+  --admin_user=$wordpress_admin_user \ --> El nombre de inicio de sesión.
+  --admin_password=$wordpress_admin_pass \ --> La contraseña de inicio de sesión.
+  --admin_email=$wordpress_admin_email \ --> El email...
+  --path=/var/www/html \
+```
+Lo que estamos haciendo aquí es lo mas parecido a una instalación desatendida, olvidando el hecho de que tengamos que configurar wordpress tras la instalación, del mismo.
+
+## Actualizamos el core
 ```
 wp core update --path=/var/www/html --allow-root
 ```
-# Instalamos un tema:
+Actualizamos el core, para evitar problemas a la hora de instalar plugins.., temas.., etc.
+## Instalamos un tema:
 ```
 wp theme install sydney --activate --path=/var/www/html --allow-root
 ```
-# Instalamos el plugin bbpress:
+Con este comandos, instalamos un tema el cual se necesita incorporar la ruta donde tenemos el wordpress --> /var/www/html, con --allow-root para que se inicie como root.
+## Instalamos el plugin bbpress:
 ```
 wp plugin install bbpress --activate --path=/var/www/html --allow-root
 ```
-# Instalamos el plugin para ocultar wp-admin
+Aquí instalamos un plugin con la siguiente sentencia...
+## Instalamos el plugin para ocultar wp-admin
+Y lo mas importante es ocultar nuestro login de wordpress a los usuarios de internet para evitar, ciertas consecuencias.
 ```
 wp plugin install wps-hide-login --activate --path=/var/www/html --allow-root
 ```
-# Habilitar permalinks
+Se cambia por defecto a login...
+## Habilitar permalinks
 ```
 wp rewrite structure '/%postname%/' \
   --path=/var/www/html \
   --allow-root
 ```
-# Modificamos automaticamente el nombre que establece por defecto el plugin wpd-hide-login
+Con esto realizamos un rewrite, ya que es necesario que para que las paginas ganen cierta fama para google, con objetivo de mejorar el seo, añadimos esto para que en las url aparezcan nombres en vez de parametros inconclusos.
+
+## Modificamos automaticamente el nombre que establece por defecto el plugin wpd-hide-login
+Primero que nada, podemos ver las opciones de wordpress con el siguiente comando, ya que nos interesa cambiar la opción del plugin que hemos instalado anteriormente, lo que vamos a hacer será modificar el nombre por defecto, a uno nuestro, ya que sigue siendo inseguro dejar ese por defecto.
+
+```
+wp option list --path /var/www/html --allow-root
+```
+
+Con esto vemos todas las listas de opciones incluyendo plugins, temas, etc.
 
 ```
 wp option update whl_page $WORDPRESS_HIDE_LOGIN --path=/var/www/html --allow-root
 ```
 
-# Copiamos el htaccess a /var/www/html
+Y con esto, he usado una variable, que incluye el dato que yo quiero insertar a esa opcion para que puede acceder al login con el nombre que le he dado.
+
+## Copiamos el htaccess a /var/www/html
+Copiamos el fichero htaccess asegurandonos de que en el archivo 000-default.conf se encuentra la directiva allowoverride All.
 ```
 cp ../conf/.htaccess /var/www/html
 ```
-# Cambiamos al propietario de /var/www/html como www-data
+
+Aquí lo muestro:
+```
+ServerSignature Off
+ServerTokens Prod
+<VirtualHost *:80>
+    #ServerAdmin webmaster@localhost
+    DocumentRoot /var/www/html
+    DirectoryIndex index.php index.html
+
+    <Directory "/var/www/html/">
+        AllowOverride All
+    </Directory>
+    
+    ErrorLog ${APACHE_LOG_DIR}/error.log
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
+</VirtualHost>
+```
+Como podemos comprobar si esta, necesario para que la reescritura funcione.
+
+## Cambiamos al propietario de /var/www/html como www-data
 ```
 chown -R www-data:www-data /var/www/html
 ```
+Cambiamos el propietario del directorio wordpress para que el usuario de apache pueda ejecutarlo.
+
+# Comprobaciones de funcionamiento.
+<p>Aquí se va a comprobar el funcionamiento de lo que se realizado previamente, de lo mas importante.</p>
+
+## Comprobación de que funciona el dominio.
+![Alt text](image.png)
+Como podemos comprobar, tanto el dominio, como la reescritura, como el contenido seguro de la página por el certificado funcionan. 
+## Comprobacion de que funciona el cambio de la opción login.
+Ahora toca comprobar si ha cogido bien la variable que actualiza la palabra con la que iniciamos sesión al dashboard de wordpress.
+![Alt text](image-1.png)
+Como se puede comprobar, si, lo ha modificado.
