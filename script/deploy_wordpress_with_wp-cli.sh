@@ -84,7 +84,3 @@ cp ../conf/.htaccess /var/www/html
 
 # Cambiamos al propietario de /var/www/html como www-data
 chown -R www-data:www-data /var/www/html
-
-
-
-
